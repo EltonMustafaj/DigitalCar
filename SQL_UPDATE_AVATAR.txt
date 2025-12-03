@@ -1,0 +1,6 @@
+-- Shto kolonën avatar_url në tabelën user_documents
+ALTER TABLE user_documents 
+ADD COLUMN IF NOT EXISTS avatar_url text;
+
+-- Përditëso politikat e sigurisë (nëse është e nevojshme, por ato ekzistuese duhet të mbulojnë UPDATE)
+-- Sigurohu që bucket 'documents' lejon ngarkimin e fotove të profilit (tashmë e bën)

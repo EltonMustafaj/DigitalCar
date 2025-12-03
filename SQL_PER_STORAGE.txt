@@ -1,0 +1,44 @@
+-- Krijimi i Bucket 'documents'
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('documents', 'documents', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- SHENIM: RLS është zakonisht e aktivizuar automatikisht.
+-- Nëse jo, duhet ta bëni manualisht, por ky rresht shpesh jep error në SQL Editor:
+-- ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- 1. Lejo upload (INSERT) vetëm në folderin e userit
+CREATE POLICY "Users can upload their own documents"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'documents' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- 2. Lejo shikimin (SELECT) vetëm të dokumenteve të veta
+CREATE POLICY "Users can view their own documents"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (
+  bucket_id = 'documents' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- 3. Lejo përditësimin (UPDATE)
+CREATE POLICY "Users can update their own documents"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'documents' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- 4. Lejo fshirjen (DELETE)
+CREATE POLICY "Users can delete their own documents"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'documents' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);

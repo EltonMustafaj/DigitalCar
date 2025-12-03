@@ -1,0 +1,14 @@
+-- Add additional profile fields to user_documents table
+-- Run this in Supabase SQL Editor
+
+ALTER TABLE user_documents
+ADD COLUMN IF NOT EXISTS parent_name TEXT,
+ADD COLUMN IF NOT EXISTS phone_number TEXT,
+ADD COLUMN IF NOT EXISTS personal_id TEXT,
+ADD COLUMN IF NOT EXISTS address TEXT;
+
+-- Add comments for documentation
+COMMENT ON COLUMN user_documents.parent_name IS 'Emri i prindit';
+COMMENT ON COLUMN user_documents.phone_number IS 'Numri i telefonit';
+COMMENT ON COLUMN user_documents.personal_id IS 'Numri personal';
+COMMENT ON COLUMN user_documents.address IS 'Adresa e banimit';

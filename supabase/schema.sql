@@ -1,0 +1,61 @@
+-- Digital Car Docs Database Schema
+
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- User Documents Table
+CREATE TABLE IF NOT EXISTS user_documents (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  full_name TEXT NOT NULL,
+  license_plate TEXT NOT NULL,
+  id_card_url TEXT,
+  car_registration_url TEXT,
+  insurance_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id)
+);
+
+-- Row Level Security Policies
+ALTER TABLE user_documents ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can only view their own documents
+CREATE POLICY "Users can view own documents"
+  ON user_documents
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Policy: Users can insert their own documents
+CREATE POLICY "Users can insert own documents"
+  ON user_documents
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Users can update their own documents
+CREATE POLICY "Users can update own documents"
+  ON user_documents
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Users can delete their own documents
+CREATE POLICY "Users can delete own documents"
+  ON user_documents
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to automatically update updated_at
+CREATE TRIGGER update_user_documents_updated_at
+  BEFORE UPDATE ON user_documents
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
